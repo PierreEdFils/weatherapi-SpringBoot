@@ -32,8 +32,13 @@ public class CurrentWeatherController {
 
             assert openWeatherResponse != null;
             System.out.println("City: " + openWeatherResponse.getName());
-            System.out.println("Temp: " + openWeatherResponse.getMain().getTemp()+ " F");
-            System.out.println("Desc: " + openWeatherResponse.getWeather()[0].getDescription());
+            System.out.println("Current Temp: " + openWeatherResponse.getMain().getTemp()+ " F");
+            System.out.println("Feels Like Temp: " + openWeatherResponse.getMain().getFeels_like()+ " F");
+            System.out.println("Max Temp: " + openWeatherResponse.getMain().getTemp_max());
+            System.out.println("Min Temp: " + openWeatherResponse.getMain().getTemp_min());
+            System.out.println("Coordinates ()lat : " + openWeatherResponse.getCoord().getLat());
+            System.out.println("Coordinates ()lon : " + openWeatherResponse.getCoord().getLon());
+            System.out.println("Weather Description: " + openWeatherResponse.getWeather()[0].getDescription());
 
             return ResponseEntity.ok(openWeatherResponse);
 
