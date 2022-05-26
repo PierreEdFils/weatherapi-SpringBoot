@@ -1,6 +1,7 @@
 package com.careerdevs.weatherapi.controllers;
 
 import com.careerdevs.weatherapi.models.CurrentWeather;
+import com.careerdevs.weatherapi.models.CurrentWeatherReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -22,25 +23,34 @@ public class CurrentWeatherController {
     public ResponseEntity<?> getCurrentWeatherByCityPV (RestTemplate restTemplate, @PathVariable String cityName){
 
         try {
-
+            String units ="imperial";
             String apikey = env.getProperty("OW_API_kEY");
-            String queryString = "?q=" + cityName + "&appid="+ apikey + "&units=imperial";
+            String queryString = "?q=" + cityName + "&appid="+ apikey + "&units"+ units;
             String openWeatherURL = BASE_URL + queryString;
 
-            CurrentWeather openWeatherResponse = restTemplate.getForObject(openWeatherURL,CurrentWeather.class);
+            CurrentWeather owRes = restTemplate.getForObject(openWeatherURL,CurrentWeather.class);
 
 
-            assert openWeatherResponse != null;
-            System.out.println("City: " + openWeatherResponse.getName());
-            System.out.println("Current Temp: " + openWeatherResponse.getMain().getTemp()+ " F");
-            System.out.println("Feels Like Temp: " + openWeatherResponse.getMain().getFeels_like()+ " F");
-            System.out.println("Max Temp: " + openWeatherResponse.getMain().getTemp_max());
-            System.out.println("Min Temp: " + openWeatherResponse.getMain().getTemp_min());
-            System.out.println("Coordinates ()lat : " + openWeatherResponse.getCoord().getLat());
-            System.out.println("Coordinates ()lon : " + openWeatherResponse.getCoord().getLon());
-            System.out.println("Weather Description: " + openWeatherResponse.getWeather()[0].getDescription());
+            assert owRes != null;
+//            System.out.println("City: " + openWeatherResponse.getName());
+//            System.out.println("Current Temp: " + openWeatherResponse.getMain().getTemp()+ " F");
+//            System.out.println("Feels Like Temp: " + openWeatherResponse.getMain().getFeels_like()+ " F");
+//            System.out.println("Max Temp: " + openWeatherResponse.getMain().getTemp_max());
+//            System.out.println("Min Temp: " + openWeatherResponse.getMain().getTemp_min());
+//            System.out.println("Coordinates ()lat : " + openWeatherResponse.getCoord().getLat());
+//            System.out.println("Coordinates ()lon : " + openWeatherResponse.getCoord().getLon());
+//            System.out.println("Weather Description: " + openWeatherResponse.getWeather()[0].getDescription());
+            CurrentWeatherReport report = new CurrentWeatherReport(
+                    owRes.getName(),
+                    owRes.getCoord(),
+                    owRes.getMain(),
+                    owRes.getWeather()[0],
+                    units
+            );
 
-            return ResponseEntity.ok(openWeatherResponse);
+            System.out.println(report);
+
+            return ResponseEntity.ok(report);
 
         } catch (HttpClientErrorException.NotFound e){
             return ResponseEntity.status(404).body("City Not Found "+ cityName);
