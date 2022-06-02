@@ -1,9 +1,7 @@
 package com.careerdevs.weatherapi.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-
-public class CurrentWeather  {
+public class CurrentWeather {
 
 
 
@@ -71,10 +69,7 @@ public class CurrentWeather  {
         private float temp_min;
         private float temp_max;
         private int pressure;
-        private int sea_level;
-        private int grnd_level;
         private float humidity;
-        private float temp_kf;
 
         public float getTemp() {
             return temp;
@@ -100,32 +95,16 @@ public class CurrentWeather  {
             return humidity;
         }
 
-        public int getSea_level() {
-            return sea_level;
-        }
-
-        public int getGrnd_level() {
-            return grnd_level;
-        }
-
-        public float getTemp_kf() {
-            return temp_kf;
-        }
-
         @Override
         public String toString() {
-            final StringBuffer sb = new StringBuffer("{");
-            sb.append("\"temp\":").append(temp);
-            sb.append(", \"feels_like\":").append(feels_like);
-            sb.append(", \"temp_min\":").append(temp_min);
-            sb.append(", \"temp_max\":").append(temp_max);
-            sb.append(", \"pressure\":").append(pressure);
-            sb.append(", \"sea_level\":").append(sea_level);
-            sb.append(", \"grnd_level\":").append(grnd_level);
-            sb.append(", \"humidity\":").append(humidity);
-            sb.append(", \"temp_kf\":").append(temp_kf);
-            sb.append('}');
-            return sb.toString();
+            return "{" +
+                    "temp=" + temp +
+                    ", feels_like=" + feels_like +
+                    ", temp_min=" + temp_min +
+                    ", temp_max=" + temp_max +
+                    ", pressure=" + pressure +
+                    ", humidity=" + humidity +
+                    '}';
         }
     }
 
