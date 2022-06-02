@@ -114,7 +114,7 @@ public class CurrentWeatherReport {
         sb.append(", \"main\":\"").append(main).append('"');
         sb.append(", \"description\":\"").append(description).append('"');
         sb.append(", \"units\":\"").append(units).append('"');
-        sb.append(", \"temp\":\"").append(temp).append('°').append((units.equals("imperial") ? "F": "C")).append("\"");
+        sb.append(", \"temp\":\"").append(temp).append('\u00B0').append((units.equals("imperial") ? "F": "C")).append("\"");
         sb.append(", \"feelsLike\":").append(feelsLike).append('°').append((units.equals("imperial") ? "F": "C")).append("\"");
         sb.append(", \"tempMin\":\"").append(tempMin).append('°').append((units.equals("imperial") ? "F": "C")).append("\"");
         sb.append(", \"tempMax\":\"").append(tempMax).append('°').append((units.equals("imperial") ? "F": "C")).append("\"");
