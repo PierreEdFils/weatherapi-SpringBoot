@@ -1,6 +1,8 @@
 package com.careerdevs.weatherapi.models;
 
 import com.careerdevs.weatherapi.models.CurrentWeather.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 public class Forecast {
@@ -8,6 +10,8 @@ public class Forecast {
     private City city;
 
     private ForecastWeatherData [] list ;
+
+    private  int visibility;
 
     public static class City {
         private String name ;
@@ -32,11 +36,31 @@ public class Forecast {
         }
     }
     public  static class ForecastWeatherData  extends CurrentWeather{
-        private  String dt_txt;
 
-        public String getDt_txt() {
-            return dt_txt;
+
+        @JsonProperty("dt_txt")
+        private  String dateTime ;
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private String name;
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        private Coords coord;
+
+        public float getPop() {
+            return pop;
         }
+
+        private float pop ;
+
+        public String getDateTime() {
+            return dateTime;
+        }
+
+    }
+
+    public int getVisibility() {
+        return visibility;
     }
 
     public City getCity() {
