@@ -126,4 +126,29 @@ public class CurrentWeatherController {
 //
 //    }
 
+
+    //city providence
+
+    @GetMapping("/")
+    public ResponseEntity<?>  testingRequestParamRQ(
+
+        RestTemplate restTemplate,
+        @RequestParam String city,
+        @RequestParam String units
+        ) {
+        try {
+
+            String apikey = env.getProperty("OW_API_kEY");
+            String queryString = "?q=" + city + "&appid="+ apikey + "&units="+ units;
+            String openWeatherURL = BASE_URL + queryString;
+
+            CurrentWeather owRes = restTemplate.getForObject(openWeatherURL,CurrentWeather.class);
+
+            return ResponseEntity.ok(owRes);
+
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
 }
