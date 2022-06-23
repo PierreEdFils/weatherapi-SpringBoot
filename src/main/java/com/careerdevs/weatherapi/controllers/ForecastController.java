@@ -3,12 +3,15 @@ package com.careerdevs.weatherapi.controllers;
 
 import com.careerdevs.weatherapi.models.Forecast;
 import com.careerdevs.weatherapi.models.ForecastReport;
+import com.careerdevs.weatherapi.validation.WeatherValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/forecast")
@@ -20,9 +23,16 @@ public class ForecastController {
     private final String BASE_URL = "https://api.openweathermap.org/data/2.5/forecast";
 
     @GetMapping("/city/{city}")
-    public ResponseEntity<?> getForecastByCity(RestTemplate restTemplate, @PathVariable String city) {
+    public ResponseEntity<?> getForecastByCityPathVariable(RestTemplate restTemplate, @PathVariable String city) {
         try {
             String units = "imperial";
+
+            HashMap<String ,String> validationErrors = WeatherValidation.validateQuery(city,units);
+
+            // if validation fails return error  messages
+            if (validationErrors.size()!=0) {
+                return  ResponseEntity.badRequest().body(validationErrors);
+            }
             String apiKey = env.getProperty("OW_API_KEY");
             String queryString = "?q=" + city + "&units=" + units + "&appid=" + apiKey;
             String url = BASE_URL + queryString;
@@ -30,12 +40,10 @@ public class ForecastController {
             Forecast owRes = restTemplate.getForObject(url, Forecast.class);
 
             // generate report
-//            System.out.println("City:  "+ owRes.getCity().getName() + ", " + owRes.getCity().getCountry() + " - Population: " + owRes.getCity().getPopulation());
-//            System.out.println("Temp In 3 Hours : "+ owRes.getList()[0].getMain().getTemp());
-            assert owRes != null;
-            ForecastReport report = new ForecastReport(owRes);
 
-            return ResponseEntity.ok(report);
+            assert owRes != null;
+
+            return ResponseEntity.ok(owRes.createReport(units));
 
 
         } catch (HttpClientErrorException.NotFound e) {
@@ -49,26 +57,71 @@ public class ForecastController {
 
     }
 
-    @GetMapping("/")
-    public ResponseEntity<?> testingRequestParamForecastRQ(
-
+    @GetMapping("/city")
+    public ResponseEntity<?> getForecastByCityReqParams(
             RestTemplate restTemplate,
-            @RequestParam String city,
-            @RequestParam String units
+            @RequestParam (value ="name")String city,
+            @RequestParam (defaultValue = "imperial" ) String units,
+            @RequestParam(defaultValue = "40") String count
     ) {
         try {
 
+            HashMap<String ,String> validationErrors = WeatherValidation.validateQuery(city,units);
+
+            //validate count is a number
+            if(!count.replaceAll("[^a-zA-Z -]","").equals(count )){
+                validationErrors.put("count", "Count must be a number");
+            } else if(Integer.parseInt(count)<1 || Integer.parseInt(count) > 40 ){
+                validationErrors.put("count", "Count must be a between 1 -40");
+            }
+
+            // if validation fails return error  messages
+            if (validationErrors.size()!=0) {
+                return  ResponseEntity.badRequest().body(validationErrors);
+            }
+
             String apiKey = env.getProperty("OW_API_KEY");
-            String queryString = "?q=" + city + "&units=" + units + "&appid=" + apiKey;
+            String queryString = "?q=" + city + "&units=" + units + "&appid=" + apiKey + "&cnt=" + count ;
             String url = BASE_URL + queryString;
 
             Forecast owRes = restTemplate.getForObject(url, Forecast.class);
 
-            return ResponseEntity.ok(owRes);
+            // generate report
+            assert owRes != null;
+            return ResponseEntity.ok(owRes.createReport(units));
+
+
+        } catch (HttpClientErrorException.NotFound e) {
+            return ResponseEntity.status(404).body("City Not Found " + city);
 
         } catch (Exception e) {
+            System.out.println(e.getMessage());
+            System.out.println(e.getClass());
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
 
     }
+
+//    @GetMapping("/")
+//    public ResponseEntity<?> testingRequestParamForecastRQ(
+//
+//            RestTemplate restTemplate,
+//            @RequestParam String city,
+//            @RequestParam String units
+//    ) {
+//        try {
+//
+//            String apiKey = env.getProperty("OW_API_KEY");
+//            String queryString = "?q=" + city + "&units=" + units + "&appid=" + apiKey;
+//            String url = BASE_URL + queryString;
+//
+//            Forecast owRes = restTemplate.getForObject(url, Forecast.class);
+//
+//            return ResponseEntity.ok(owRes);
+//
+//        } catch (Exception e) {
+//            return ResponseEntity.internalServerError().body(e.getMessage());
+//        }
+//
+//    }
 }

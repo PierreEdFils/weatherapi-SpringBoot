@@ -7,23 +7,26 @@ public class ForecastReport {
     private final String cityName;
     private final String country;
     private final int population;
+    private final  CurrentWeather.Coords coords;
+    private final int  reportsCount;
 //    private final ForecastReportEntry[] reports;
     private final ArrayList<ForecastReportEntry> reports;
-    private final  CurrentWeather.Coords coords;
 
 
-public ForecastReport(Forecast forecast) {
+
+public ForecastReport(Forecast forecast,String units) {
         cityName = forecast.getCity().getName();
         country = forecast.getCity().getCountry();
         population = forecast.getCity().getPopulation();
         this.coords = forecast.getCity().getCoord();
+        reportsCount = forecast.getList().length;
 
 //        reports = new ForecastReportEntry[forecast.getList().length];
         reports= new ArrayList<>();
 
         for (int i = 0; i < forecast.getList().length; i++) {
 //            reports[i] = new ForecastReportEntry(forecast.getList()[i]);
-            reports.add(new ForecastReportEntry (forecast.getList()[i]));
+            reports.add(new ForecastReportEntry (forecast.getList()[i], units));
 
         }
     }
@@ -36,10 +39,11 @@ public ForecastReport(Forecast forecast) {
         private final String percentageOfPrecipitation;
 
 
-        public ForecastReportEntry(Forecast.ForecastWeatherData wd) {
+        public ForecastReportEntry(Forecast.ForecastWeatherData wd, String units) {
+
             description = wd.getWeather()[0].getMain() + " - " + wd.getWeather()[0].getDescription();
             dateTime = wd.getDateTime();
-            temp = wd.getMain().getTemp() + "°F";
+            temp = wd.getMain().getTemp() + "°" + (units.equals("imperial") ? "F": "C");
             percentageOfPrecipitation = wd.getPop() * 100 + "%";
         }
 
@@ -68,6 +72,7 @@ public ForecastReport(Forecast forecast) {
         return country;
     }
 
+    public int getReportsCount(){ return reportsCount;}
 
     public int getPopulation() {
         return population;
