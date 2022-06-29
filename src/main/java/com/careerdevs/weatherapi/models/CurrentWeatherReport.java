@@ -1,7 +1,19 @@
 package com.careerdevs.weatherapi.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
+@Entity
 public class CurrentWeatherReport {
 
+     @Id
+     @GeneratedValue(strategy = GenerationType.AUTO)
+     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+     private long id;
 
      private String name ;
      private String main;
@@ -15,6 +27,10 @@ public class CurrentWeatherReport {
      private float humidity;
      private float lon;
      private float lat;
+
+     public CurrentWeatherReport(){
+
+     }
 
 
     public CurrentWeatherReport(
@@ -36,6 +52,10 @@ public class CurrentWeatherReport {
         humidity = main.getHumidity();
         this.main = weather.getMain();
         description = weather.getDescription();
+    }
+
+    public long getId() {
+         return id;
     }
 
     public String getName() {

@@ -2,6 +2,7 @@ package com.careerdevs.weatherapi.controllers;
 
 import com.careerdevs.weatherapi.models.CurrentWeather;
 import com.careerdevs.weatherapi.models.CurrentWeatherReport;
+import com.careerdevs.weatherapi.repositories.CurrentReportRepository;
 import com.careerdevs.weatherapi.validation.WeatherValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -10,9 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/current")
@@ -22,6 +23,9 @@ public class CurrentWeatherController {
     private Environment env;
 
     private final String BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
+
+    @Autowired
+    private CurrentReportRepository currentReportRepo;
 
     @GetMapping("/city/{cityName}")
     public ResponseEntity<?> getCurrentWeatherByCityPV (RestTemplate restTemplate,
@@ -157,8 +161,8 @@ public class CurrentWeatherController {
 //  http:localhost:8080/api/current/city?name=providence&units
 
 
-    @GetMapping("/city")
-    public ResponseEntity<?>  getCurrentWeatherByCityRequestParams(
+    @PostMapping("/city")
+    public ResponseEntity<?>  uploadCurrentWeatherByCityRequestParams(
 
             RestTemplate restTemplate,
             @RequestParam (value ="name")String cityName,
@@ -179,7 +183,11 @@ public class CurrentWeatherController {
 
             CurrentWeather owRes = restTemplate.getForObject(openWeatherURL,CurrentWeather.class);
             assert owRes != null;
-            return ResponseEntity.ok(owRes.createReport(units));
+
+            //upload to the database
+            CurrentWeatherReport savedReport = currentReportRepo.save(owRes.createReport(units));
+
+            return ResponseEntity.ok(savedReport);
 
 
 
@@ -194,4 +202,92 @@ public class CurrentWeatherController {
         }
     }
 
+    @GetMapping ("/all")
+    public ResponseEntity<?>  getAllCurrentWeatherReports() {
+        try {
+            List<CurrentWeatherReport> allReports =currentReportRepo.findAll();
+            return ResponseEntity.ok(allReports);
+
+        }catch(Exception e) {
+
+            System.out.println(e.getMessage());
+            System.out.println(e.getClass());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @GetMapping ("/id/{id}")
+    public ResponseEntity<?>  getCurrentWeatherReportById(@PathVariable String id) {
+        try {
+
+            HashMap<String ,String> validationErrors = WeatherValidation.validateQueryId(id);
+
+            // if validation fails return error  messages
+            if (validationErrors.size()!=0) {
+                return  ResponseEntity.badRequest().body(validationErrors);
+            }
+
+            Optional<CurrentWeatherReport> currentReport  =currentReportRepo.findById(Long.parseLong(id));
+
+            if (currentReport.isEmpty()){
+                return ResponseEntity.status(404).body("Current Report not Found with Id : " + id);
+            }
+            return ResponseEntity.ok(currentReport);
+
+        }catch(Exception e) {
+
+            System.out.println(e.getMessage());
+            System.out.println(e.getClass());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping ("/id/{id}")
+    public ResponseEntity<?>  deleteCurrentWeatherReportById(@PathVariable String id) {
+        try {
+
+            HashMap<String ,String> validationErrors = WeatherValidation.validateQueryId(id);
+
+            // if validation fails return error  messages
+            if (validationErrors.size()!=0) {
+                return  ResponseEntity.badRequest().body(validationErrors);
+            }
+
+            Optional<CurrentWeatherReport> currentReport  =currentReportRepo.findById(Long.parseLong(id));
+
+            if (currentReport.isEmpty()){
+                 return ResponseEntity.status(404).body("Current Report not Found with ID : " + id);
+            }
+
+            currentReportRepo.deleteById(Long.parseLong(id));
+
+            return ResponseEntity.ok(currentReport);
+
+        }catch(Exception e) {
+
+            System.out.println(e.getMessage());
+            System.out.println(e.getClass());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @GetMapping ("/all")
+    public ResponseEntity<?>  deleteAllCurrentWeatherReports() {
+        try {
+            List<CurrentWeatherReport> allReports =currentReportRepo.findAll();
+            if (allReports.isEmpty()){
+                return ResponseEntity.status(404).body(" No Current Report ;to delete : " );
+            }
+
+            currentReportRepo.deleteAll();
+
+            return ResponseEntity.ok(allReports);
+
+        }catch(Exception e) {
+
+            System.out.println(e.getMessage());
+            System.out.println(e.getClass());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
 }
