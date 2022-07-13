@@ -98,41 +98,45 @@ public class CurrentWeatherController {
 //
 //    }
 
-//        @GetMapping("/city")
-//    public ResponseEntity<?> getCurrentWeatherByCityRP (RestTemplate restTemplate, @RequestParam String cityName){
-//
-//        try {
-//            String units ="imperial";
-//            String apikey = env.getProperty("OW_API_kEY");
-//            String queryString = "?q=" + cityName + "&appid="+ apikey + "&units=imperial";
-//            String openWeatherURL = BASE_URL + queryString;
-//
-//            CurrentWeather owRes = restTemplate.getForObject(openWeatherURL,CurrentWeather.class);
-//            CurrentWeatherReport report = new CurrentWeatherReport(
-//                    owRes.getName(),
-//                    owRes.getCoord(),
-//                    owRes.getMain(),
-//                    owRes.getWeather()[0],
-//                    units
-//            );
-//
-//            System.out.println(report);
-//
-//
-//            return ResponseEntity.ok(report);
-//
-//        } catch (HttpClientErrorException.NotFound e){
-//            return ResponseEntity.status(404).body("City Not Found "+ cityName);
-//
-//        } catch (Exception e){
-//            System.out.println(e.getMessage());
-//            System.out.println(e.getClass());
-//
-//            return ResponseEntity.internalServerError().body(e.getMessage());
-//        }
-//
-//
-//    }
+        @GetMapping("/city")
+    public ResponseEntity<?> getCurrentWeatherByCityRequestParams (
+                RestTemplate restTemplate,
+                @RequestParam (value ="name")String cityName,
+                @RequestParam (defaultValue = "imperial" ) String units
+        ){
+
+        try {
+            HashMap<String ,String> validationErrors = WeatherValidation.validateQuery(cityName,units);
+
+            // if validation fails return error  messages
+            if (validationErrors.size()!=0) {
+                return  ResponseEntity.badRequest().body(validationErrors);
+            }
+
+            String apikey = env.getProperty("OW_API_KEY");
+            String queryString = "?q=" + cityName + "&appid="+ apikey + "&units="+ units;
+            String openWeatherURL = BASE_URL + queryString;
+
+            CurrentWeather owRes = restTemplate.getForObject(openWeatherURL,CurrentWeather.class);
+            assert owRes != null;
+
+
+
+            return ResponseEntity.ok(owRes.createReport(units));
+
+
+        } catch (HttpClientErrorException.NotFound e){
+            return ResponseEntity.status(404).body("City Not Found "+ cityName);
+
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+            System.out.println(e.getClass());
+
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+
+
+    }
 
 
     //city providence
@@ -202,6 +206,10 @@ public class CurrentWeatherController {
         }
     }
 
+    //http://localhost:8080/api/current/test
+    @GetMapping ("/test")
+    public String test (){ return "test";}
+
     @GetMapping ("/all")
     public ResponseEntity<?>  getAllCurrentWeatherReports() {
         try {
@@ -215,6 +223,29 @@ public class CurrentWeatherController {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
+
+
+     @DeleteMapping("/all")
+     public ResponseEntity<?>  deleteAllCurrentWeatherReports() {
+        try {
+            List<CurrentWeatherReport> allReports =currentReportRepo.findAll();
+
+            if (allReports.isEmpty()){
+                return ResponseEntity.status(404).body("No Current Reports to delete ");
+            }
+
+            currentReportRepo.deleteAll();
+
+            return ResponseEntity.ok(allReports);
+
+        }catch(Exception e) {
+
+            System.out.println(e.getMessage());
+            System.out.println(e.getClass());
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
 
     @GetMapping ("/id/{id}")
     public ResponseEntity<?>  getCurrentWeatherReportById(@PathVariable String id) {
@@ -241,7 +272,6 @@ public class CurrentWeatherController {
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
     }
-
     @DeleteMapping ("/id/{id}")
     public ResponseEntity<?>  deleteCurrentWeatherReportById(@PathVariable String id) {
         try {
@@ -256,7 +286,7 @@ public class CurrentWeatherController {
             Optional<CurrentWeatherReport> currentReport  =currentReportRepo.findById(Long.parseLong(id));
 
             if (currentReport.isEmpty()){
-                 return ResponseEntity.status(404).body("Current Report not Found with ID : " + id);
+                return ResponseEntity.status(404).body("Current Report not Found with Id : " + id);
             }
 
             currentReportRepo.deleteById(Long.parseLong(id));
@@ -271,23 +301,6 @@ public class CurrentWeatherController {
         }
     }
 
-    @GetMapping ("/all")
-    public ResponseEntity<?>  deleteAllCurrentWeatherReports() {
-        try {
-            List<CurrentWeatherReport> allReports =currentReportRepo.findAll();
-            if (allReports.isEmpty()){
-                return ResponseEntity.status(404).body(" No Current Report ;to delete : " );
-            }
 
-            currentReportRepo.deleteAll();
 
-            return ResponseEntity.ok(allReports);
-
-        }catch(Exception e) {
-
-            System.out.println(e.getMessage());
-            System.out.println(e.getClass());
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
-    }
 }

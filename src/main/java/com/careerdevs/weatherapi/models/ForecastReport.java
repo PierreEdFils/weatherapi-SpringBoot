@@ -1,32 +1,53 @@
 package com.careerdevs.weatherapi.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import javax.persistence.*;
 import java.util.ArrayList;
 
+@Entity
 public class ForecastReport {
 
-    private final String cityName;
-    private final String country;
-    private final int population;
-    private final  CurrentWeather.Coords coords;
-    private final int  reportsCount;
-//    private final ForecastReportEntry[] reports;
-    private final ArrayList<ForecastReportEntry> reports;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+
+    private long id;
+
+    private  String cityName;
+    private  String country;
+    private  int population;
+
+    private float lon;
+    private float lat;
+    private  int  reportsCount;
+    @ElementCollection
+    @OrderColumn()
+
+    private String[] reports;
+//   private  ForecastReportEntry[] reports;
 
 
+//    private  ArrayList<String> reports;
+
+public ForecastReport(){
+
+}
 
 public ForecastReport(Forecast forecast,String units) {
         cityName = forecast.getCity().getName();
         country = forecast.getCity().getCountry();
         population = forecast.getCity().getPopulation();
-        this.coords = forecast.getCity().getCoord();
+        lon = forecast.getCity().getCoord().getLon();
+        lat = forecast.getCity().getCoord().getLat();
         reportsCount = forecast.getList().length;
 
-//        reports = new ForecastReportEntry[forecast.getList().length];
-        reports= new ArrayList<>();
+      reports = new String[forecast.getList().length];
+//        reports= new ArrayList<>();
 
         for (int i = 0; i < forecast.getList().length; i++) {
-//            reports[i] = new ForecastReportEntry(forecast.getList()[i]);
-            reports.add(new ForecastReportEntry (forecast.getList()[i], units));
+            reports[i] = new ForecastReportEntry(forecast.getList()[i],units).toString();
+//            reports.add(new ForecastReportEntry (forecast.getList()[i], units).toString());
 
         }
     }
@@ -62,6 +83,17 @@ public ForecastReport(Forecast forecast,String units) {
         public String getPercentageOfPrecipitation() {
             return percentageOfPrecipitation;
         }
+
+        @Override
+        public String toString() {
+            final StringBuffer sb = new StringBuffer("{");
+            sb.append("\"description\":\"").append(description).append('"');
+            sb.append(", \"dateTime\":\"").append(dateTime).append('"');
+            sb.append(", \"temp\":\"").append(temp).append('"');
+            sb.append(", \"percentageOfPrecipitation\":\"").append(percentageOfPrecipitation).append('"');
+            sb.append('}');
+            return sb.toString();
+        }
     }
 
     public String getCityName() {
@@ -78,18 +110,29 @@ public ForecastReport(Forecast forecast,String units) {
         return population;
     }
 
-    public CurrentWeather.Coords getCoords() {
-        return coords;
+
+    public long getId() {
+        return id;
     }
 
-    //    public ForecastReportEntry[] getReports() {
+    public float getLon() {
+        return lon;
+    }
+
+    public float getLat() {
+        return lat;
+    }
+
+        public String[] getReports() {
+        return reports;
+    }
+
+
+//    public ArrayList<String> getReports() {
 //        return reports;
 //    }
 
 
-    public ArrayList<ForecastReportEntry> getReports() {
-        return reports;
-    }
 }
 
 
